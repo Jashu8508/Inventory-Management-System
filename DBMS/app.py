@@ -11,8 +11,8 @@ from email.mime.multipart import MIMEMultipart
 # To send real emails, fill in your SMTP details here:
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
-SMTP_EMAIL = "jp0529@srmist.edu.in" 
-SMTP_PASSWORD = "Jashu@8508" # Please replace with your actual App Password
+SMTP_EMAIL = "MAIL ID" 
+SMTP_PASSWORD = "PASSWORD" # Please replace with your actual App Password
 
 def send_otp_email(target_email, otp, subject="FreshTrack Verification Code"):
     msg_body = f"""
