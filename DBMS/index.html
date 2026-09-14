@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FreshTrack — Food Product Inventory Management</title>
+  <meta name="description" content="A comprehensive food product inventory management system to track stock, suppliers, warehouses, departments, and managers efficiently." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Authentication Overlay -->
+  <div id="authOverlay" class="auth-overlay">
+    <div class="auth-box">
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Login</button>
+        <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Register</button>
+      </div>
+
+      <div class="auth-header">
+        <span class="auth-logo-icon">🥦</span>
+        <h1 id="authTitle">FreshTrack</h1>
+        <p id="authSubtitle">Sign in to manage your inventory</p>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="name@example.com" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="pass-wrapper">
+            <input type="password" id="loginPass" class="form-input" placeholder="Enter password" required autocomplete="current-password" />
+            <button type="button" class="pass-toggle" onclick="togglePass('loginPass')">👁️</button>
+          </div>
+        </div>
+        <div style="text-align:right; margin-bottom:16px">
+          <button type="button" class="btn-link" onclick="showForgotPassword()">Forgot Password?</button>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:12px">Access Dashboard</button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" onsubmit="handleRegister(event)" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="regName" class="form-input" placeholder="Your Name" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="regEmail" class="form-input" placeholder="name@example.com" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="pass-wrapper">
+            <input type="password" id="regPass" class="form-input" placeholder="Create password" required />
+            <button type="button" class="pass-toggle" onclick="togglePass('regPass')">👁️</button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px; padding:12px">Create Account</button>
+      </form>
+
+      <!-- OTP Form -->
+      <form id="otpForm" onsubmit="handleVerifyOTP(event)" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Enter 6-Digit OTP</label>
+          <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px">Sent to: <span id="otpTargetEmail" style="color:var(--accent-green)"></span></p>
+          <input type="text" id="otpCode" class="form-input otp-input" placeholder="000000" maxlength="6" required />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:12px">Verify & Continue</button>
+        <div style="display:flex; gap:10px; margin-top:12px">
+          <button type="button" class="btn btn-secondary" style="flex:1" onclick="resendOTP()">Resend Code</button>
+          <button type="button" class="btn btn-secondary" style="flex:1" onclick="backToLogin()">Cancel</button>
+        </div>
+        <p style="margin-top:16px; font-size:10px; color:var(--text-muted); text-align:center">
+          Can't find the email? Check your <code>otp_log.txt</code> file in the project folder.
+        </p>
+      </form>
+
+      <!-- Forgot Password Form -->
+      <form id="forgotForm" onsubmit="handleForgotRequest(event)" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px">Enter your email to receive a reset code.</p>
+          <input type="email" id="forgotEmail" class="form-input" placeholder="name@example.com" required />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:12px">Send Reset Code</button>
+        <button type="button" class="btn btn-secondary" style="width:100%; margin-top:10px" onclick="backToLogin()">Back to Login</button>
+      </form>
+
+      <!-- Reset Password Form -->
+      <form id="resetForm" onsubmit="handleResetPassword(event)" style="display:none">
+        <div class="form-group">
+          <label class="form-label">OTP Code</label>
+          <input type="text" id="resetOtp" class="form-input" placeholder="000000" maxlength="6" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <div class="pass-wrapper">
+            <input type="password" id="resetPass" class="form-input" placeholder="Enter new password" required />
+            <button type="button" class="pass-toggle" onclick="togglePass('resetPass')">👁️</button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:12px">Reset Password</button>
+      </form>
+
+      <div class="auth-footer">
+        <p>FreshTrack Security Layer v2.0</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Animated Background -->
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">🥦</span>
+        <div>
+          <span class="logo-text">FreshTrack</span>
+          <span class="logo-sub">Inventory System</span>
+        </div>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle Sidebar">&#9776;</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="#" class="nav-item active" data-page="dashboard" id="nav-dashboard">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" data-page="stock" id="nav-stock">
+        <span class="nav-icon">📦</span>
+        <span class="nav-label">Stock</span>
+        <span class="nav-badge" id="badge-expiring">0</span>
+      </a>
+      <a href="#" class="nav-item" data-page="products" id="nav-products">
+        <span class="nav-icon">🛒</span>
+        <span class="nav-label">Products</span>
+      </a>
+      <div class="nav-section-label">Management</div>
+      <a href="#" class="nav-item" data-page="departments" id="nav-departments">
+        <span class="nav-icon">🏢</span>
+        <span class="nav-label">Departments</span>
+      </a>
+      <a href="#" class="nav-item" data-page="managers" id="nav-managers">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Managers</span>
+      </a>
+      <a href="#" class="nav-item" data-page="suppliers" id="nav-suppliers">
+        <span class="nav-icon">🚚</span>
+        <span class="nav-label">Suppliers</span>
+      </a>
+      <a href="#" class="nav-item" data-page="warehouses" id="nav-warehouses">
+        <span class="nav-icon">🏭</span>
+        <span class="nav-label">Warehouses</span>
+      </a>
+      <div class="nav-section-label">Reports</div>
+      <a href="#" class="nav-item" data-page="orders" id="nav-orders">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Orders</span>
+      </a>
+      <a href="#" class="nav-item" data-page="invoices" id="nav-invoices">
+        <span class="nav-icon">🧾</span>
+        <span class="nav-label">Invoices</span>
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-avatar">SA</div>
+        <div class="user-info">
+          <span class="user-name">System Admin</span>
+          <span class="user-role">Administrator</span>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()" title="Logout">🚪</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open Menu">☰</button>
+        <div class="page-breadcrumb">
+          <span class="breadcrumb-home">FreshTrack</span>
+          <span class="breadcrumb-sep">›</span>
+          <span class="breadcrumb-current" id="breadcrumbCurrent">Dashboard</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="globalSearch" placeholder="Search anything..." autocomplete="off" />
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-btn" id="notifBtn" title="Notifications" aria-label="Notifications">
+            🔔
+            <span class="notif-dot"></span>
+          </button>
+          <button class="icon-btn" title="Refresh Data" aria-label="Refresh" onclick="refreshData()">🔄</button>
+          <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle Theme">🌙</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="page-wrapper" id="pageWrapper">
+
+      <!-- ===================== DASHBOARD PAGE ===================== -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Dashboard Overview</h1>
+            <p class="page-subtitle">Welcome back! Here's what's happening in your inventory.</p>
+          </div>
+          <div class="page-actions">
+            <span class="live-badge">● LIVE</span>
+            <span class="date-badge" id="currentDate"></span>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card stat-green">
+            <div class="stat-icon">📦</div>
+            <div class="stat-info">
+              <span class="stat-value" id="totalStock">0</span>
+              <span class="stat-label">Total Stock Items</span>
+            </div>
+            <div class="stat-trend up">↑ 12%</div>
+          </div>
+          <div class="stat-card stat-blue">
+            <div class="stat-icon">🚚</div>
+            <div class="stat-info">
+              <span class="stat-value" id="totalSuppliers">0</span>
+              <span class="stat-label">Active Suppliers</span>
+            </div>
+            <div class="stat-trend up">↑ 5%</div>
+          </div>
+          <div class="stat-card stat-purple">
+            <div class="stat-icon">🏭</div>
+            <div class="stat-info">
+              <span class="stat-value" id="totalWarehouses">0</span>
+              <span class="stat-label">Warehouses</span>
+            </div>
+            <div class="stat-trend neutral">→ 0%</div>
+          </div>
+          <div class="stat-card stat-orange">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-info">
+              <span class="stat-value" id="expiringCount">0</span>
+              <span class="stat-label">Expiring Soon</span>
+            </div>
+            <div class="stat-trend down">↓ Alert</div>
+          </div>
+        </div>
+
+        <!-- Charts & Quick Info Row -->
+        <div class="dashboard-grid">
+          <!-- Stock Status Chart -->
+          <div class="glass-card chart-card">
+            <div class="card-header">
+              <h2>Stock Status Distribution</h2>
+              <span class="card-tag">Live</span>
+            </div>
+            <div class="donut-chart-wrapper">
+              <canvas id="stockStatusChart" width="220" height="220"></canvas>
+              <div class="donut-center">
+                <span class="donut-value" id="donutTotal">0</span>
+                <span class="donut-label">Total</span>
+              </div>
+            </div>
+            <div class="chart-legend" id="stockLegend"></div>
+          </div>
+
+          <!-- Recent Stock -->
+          <div class="glass-card">
+            <div class="card-header">
+              <h2>Recent Stock Activity</h2>
+              <button class="btn-link" onclick="navigateTo('stock')">View All →</button>
+            </div>
+            <div class="activity-list" id="recentActivity"></div>
+          </div>
+
+          <!-- Expiry Alerts -->
+          <div class="glass-card alert-card">
+            <div class="card-header">
+              <h2>⚠️ Expiry Alerts</h2>
+              <span class="alert-count" id="alertCount">0 items</span>
+            </div>
+            <div class="alert-list" id="expiryAlertList"></div>
+          </div>
+
+          <!-- Supplier Overview -->
+          <div class="glass-card">
+            <div class="card-header">
+              <h2>Supplier Overview</h2>
+              <button class="btn-link" onclick="navigateTo('suppliers')">View All →</button>
+            </div>
+            <div class="bar-chart-wrapper" id="supplierBarChart"></div>
+          </div>
+        </div>
+
+        <!-- Quick Stats Row -->
+        <div class="mini-stats-row">
+          <div class="mini-stat">
+            <span class="mini-icon">🏢</span>
+            <div>
+              <span class="mini-val" id="totalDepartments">0</span>
+              <span class="mini-lbl">Departments</span>
+            </div>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-icon">👤</span>
+            <div>
+              <span class="mini-val" id="totalManagers">0</span>
+              <span class="mini-lbl">Managers</span>
+            </div>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-icon">✅</span>
+            <div>
+              <span class="mini-val" id="inStockCount">0</span>
+              <span class="mini-lbl">In Stock</span>
+            </div>
+          </div>
+          <div class="mini-stat">
+            <span class="mini-icon">📋</span>
+            <div>
+              <span class="mini-val" id="totalOrders">0</span>
+              <span class="mini-lbl">Total Orders</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== PRODUCTS PAGE ===================== -->
+      <div class="page" id="page-products">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Products</h1>
+            <p class="page-subtitle">Browse all products — click a card to see description &amp; profit analysis</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openModal('product')">+ Add Product</button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" class="filter-input" id="productSearch" placeholder="Search by name, ID or category..." oninput="filterProducts()" />
+          <select class="filter-select" id="productCategoryFilter" onchange="filterProducts()">
+            <option value="">All Categories</option>
+            <option value="Vegetables">🥬 Vegetables</option>
+            <option value="Dairy">🥛 Dairy</option>
+            <option value="Grains">🌾 Grains</option>
+            <option value="Meat">🍗 Meat</option>
+            <option value="Beverages">🥤 Beverages</option>
+            <option value="Frozen">❄️ Frozen</option>
+          </select>
+          <select class="filter-select" id="productPLFilter" onchange="filterProducts()">
+            <option value="">All P&amp;L</option>
+            <option value="profit">✅ Profit</option>
+            <option value="loss">❌ Loss</option>
+          </select>
+        </div>
+
+        <!-- Summary strip -->
+        <div class="product-summary-strip" id="productSummaryStrip"></div>
+
+        <div class="product-grid" id="productGrid"></div>
+      </div>
+
+      <!-- ===================== STOCK PAGE ===================== -->
+      <div class="page" id="page-stock">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Stock Management</h1>
+            <p class="page-subtitle">Manage and track all food product inventory</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openModal('stock')">+ Add Stock</button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" class="filter-input" id="stockSearch" placeholder="Search by product or ID..." oninput="filterTable('stock')" />
+          <select class="filter-select" id="stockStatusFilter" onchange="filterTable('stock')">
+            <option value="">All Status</option>
+            <option value="In Stock">In Stock</option>
+            <option value="Low Stock">Low Stock</option>
+            <option value="Out of Stock">Out of Stock</option>
+            <option value="Expiring Soon">Expiring Soon</option>
+          </select>
+          <select class="filter-select" id="stockWarehouseFilter" onchange="filterTable('stock')">
+            <option value="">All Warehouses</option>
+          </select>
+        </div>
+
+        <div class="table-card glass-card">
+          <table class="data-table" id="stockTable">
+            <thead>
+              <tr>
+                <th>Stock ID</th>
+                <th>Product ID</th>
+                <th>Expiry Date</th>
+                <th>Status</th>
+                <th>Warehouse</th>
+                <th>Supplier</th>
+                <th>Manager</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="stockTableBody"></tbody>
+          </table>
+          <div class="table-empty" id="stockEmpty" style="display:none;">
+            <span>📦</span>
+            <p>No stock items found</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== DEPARTMENTS PAGE ===================== -->
+      <div class="page" id="page-departments">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Departments</h1>
+            <p class="page-subtitle">Manage all operational departments</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openModal('department')">+ Add Department</button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" class="filter-input" id="deptSearch" placeholder="Search departments..." oninput="filterTable('department')" />
+          <select class="filter-select" id="deptTypeFilter" onchange="filterTable('department')">
+            <option value="">All Types</option>
+            <option value="Production">Production</option>
+            <option value="Storage">Storage</option>
+            <option value="Logistics">Logistics</option>
+            <option value="Quality Control">Quality Control</option>
+          </select>
+        </div>
+
+        <div class="cards-grid" id="departmentCards"></div>
+      </div>
+
+      <!-- ===================== MANAGERS PAGE ===================== -->
+      <div class="page" id="page-managers">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Managers</h1>
+            <p class="page-subtitle">Team leads overseeing inventory and suppliers</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openModal('manager')">+ Add Manager</button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" class="filter-input" id="managerSearch" placeholder="Search managers..." oninput="filterTable('manager')" />
+        </div>
+
+        <div class="manager-grid" id="managerCards"></div>
+      </div>
+
+      <!-- ===================== SUPPLIERS PAGE ===================== -->
+      <div class="page" id="page-suppliers">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Suppliers</h1>
+            <p class="page-subtitle">All food product suppliers and vendors</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openModal('supplier')">+ Add Supplier</button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" class="filter-input" id="supplierSearch" placeholder="Search suppliers..." oninput="filterTable('supplier')" />
+          <select class="filter-select" id="supplierTypeFilter" onchange="filterTable('supplier')">
+            <option value="">All Types</option>
+            <option value="Dairy">Dairy</option>
+            <option value="Grains">Grains</option>
+            <option value="Produce">Produce</option>
+            <option value="Meat">Meat</option>
+            <option value="Beverages">Beverages</option>
+            <option value="Frozen">Frozen</option>
+          </select>
+        </div>
+
+        <div class="table-card glass-card">
+          <table class="data-table" id="supplierTable">
+            <thead>
+              <tr>
+                <th>Supplier ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Type</th>
+                <th>Manager</th>
+                <th>Stock Items</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="supplierTableBody"></tbody>
+          </table>
+          <div class="table-empty" id="supplierEmpty" style="display:none;">
+            <span>🚚</span>
+            <p>No suppliers found</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== WAREHOUSES PAGE ===================== -->
+      <div class="page" id="page-warehouses">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Warehouses</h1>
+            <p class="page-subtitle">Storage facilities and locations</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openModal('warehouse')">+ Add Warehouse</button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" class="filter-input" id="warehouseSearch" placeholder="Search warehouses..." oninput="filterTable('warehouse')" />
+        </div>
+
+        <div class="warehouse-grid" id="warehouseCards"></div>
+      </div>
+
+      <!-- ===================== ORDERS PAGE ===================== -->
+      <div class="page" id="page-orders">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Orders</h1>
+            <p class="page-subtitle">Manager-Supplier order records</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openModal('order')">+ Create Order</button>
+          </div>
+        </div>
+
+        <div class="table-card glass-card">
+          <table class="data-table" id="ordersTable">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Manager</th>
+                <th>Supplier</th>
+                <th>Product</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody"></tbody>
+          </table>
+          <div class="table-empty" id="ordersEmpty" style="display:none;">
+            <span>📋</span>
+            <p>No orders found</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== INVOICES PAGE ===================== -->
+      <div class="page" id="page-invoices">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Financial Invoices</h1>
+            <p class="page-subtitle">Track billing and payment status for all orders</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openModal('invoice')">+ Create Invoice</button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <input type="text" class="filter-input" id="invoiceSearch" placeholder="Search invoices or orders..." oninput="filterTable('invoice')" />
+          <select class="filter-select" id="invoiceStatusFilter" onchange="filterTable('invoice')">
+            <option value="">All Status</option>
+            <option value="Paid">✅ Paid</option>
+            <option value="Pending">⏳ Pending</option>
+            <option value="Overdue">🔴 Overdue</option>
+          </select>
+        </div>
+
+        <div class="table-card glass-card">
+          <table class="data-table" id="invoicesTable">
+            <thead>
+              <tr>
+                <th>Invoice ID</th>
+                <th>Order ID</th>
+                <th>Amount</th>
+                <th>Billing Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="invoicesTableBody"></tbody>
+          </table>
+          <div class="table-empty" id="invoicesEmpty" style="display:none;">
+            <span>🧾</span>
+            <p>No invoices found</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ===================== PRODUCT DETAIL PANEL ===================== -->
+  <div class="detail-overlay" id="detailOverlay" onclick="closeDetailPanel(event)"></div>
+  <aside class="detail-panel" id="detailPanel">
+    <div class="detail-panel-inner" id="detailPanelInner"></div>
+  </aside>
+
+  <!-- ===================== MODAL ===================== -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal-box" id="modalBox">
+      <div class="modal-header">
+        <h2 id="modalTitle">Add Item</h2>
+        <button class="modal-close" onclick="closeModal(null, true)" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal(null, true)">Cancel</button>
+        <button class="btn btn-primary" id="modalSaveBtn" onclick="saveModal()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Invoice Template for PDF -->
+  <div id="invoiceTemplate" style="display: none; position: absolute; left: -9999px;">
+    <div id="invoiceContent" style="padding: 50px; font-family: 'Inter', sans-serif; color: #1a2035; background: #fff; width: 750px; line-height: 1.5;">
+      <!-- Header -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #4ade80; padding-bottom: 25px; margin-bottom: 35px;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+            <span style="font-size: 32px;">🥦</span>
+            <h1 style="color: #4ade80; margin: 0; font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -0.5px;">FreshTrack</h1>
+          </div>
+          <p style="color: #64748b; margin: 0; font-size: 14px; font-weight: 500;">Inventory Management System</p>
+          <p style="color: #94a3b8; margin: 4px 0 0 0; font-size: 12px;">Automated Financial Record</p>
+        </div>
+        <div style="text-align: right;">
+          <h2 style="margin: 0; font-size: 28px; font-weight: 800; color: #1e293b; letter-spacing: 1px;">INVOICE</h2>
+          <div style="display: inline-block; background: #f1f5f9; padding: 4px 12px; border-radius: 6px; margin-top: 8px;">
+            <span style="color: #475569; font-weight: 700; font-size: 14px;" id="pdf-invoice-id">#INV-000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parties Row -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 45px;">
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+          <h4 style="color: #64748b; text-transform: uppercase; margin: 0 0 12px 0; font-size: 11px; font-weight: 700; letter-spacing: 1px;">Billed To:</h4>
+          <p style="margin: 0; font-weight: 800; font-size: 18px; color: #0f172a;" id="pdf-manager-name">Arjun Patel</p>
+          <p style="margin: 4px 0; color: #475569; font-size: 14px; font-weight: 600;" id="pdf-dept-name">Cold Storage</p>
+          <p style="margin: 8px 0 0 0; color: #64748b; font-size: 13px;" id="pdf-manager-email">arjun.patel@freshtrack.in</p>
+        </div>
+        <div style="background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; text-align: right;">
+          <h4 style="color: #64748b; text-transform: uppercase; margin: 0 0 12px 0; font-size: 11px; font-weight: 700; letter-spacing: 1px;">Supplier Details:</h4>
+          <p style="margin: 0; font-weight: 800; font-size: 18px; color: #0f172a;" id="pdf-supplier-name">GreenLeaf Farms</p>
+          <p style="margin: 4px 0; color: #475569; font-size: 14px; font-weight: 600;" id="pdf-supplier-type">Produce Supplier</p>
+          <p style="margin: 8px 0 0 0; color: #64748b; font-size: 13px;" id="pdf-supplier-phone">Phone: 8011234567</p>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <table style="width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 40px;">
+        <thead>
+          <tr style="background: #1e293b; color: #fff;">
+            <th style="padding: 14px 20px; text-align: left; font-size: 12px; font-weight: 600; border-radius: 8px 0 0 8px;">DESCRIPTION</th>
+            <th style="padding: 14px 20px; text-align: center; font-size: 12px; font-weight: 600;">ORDER ID</th>
+            <th style="padding: 14px 20px; text-align: center; font-size: 12px; font-weight: 600;">BILLING DATE</th>
+            <th style="padding: 14px 20px; text-align: right; font-size: 12px; font-weight: 600; border-radius: 0 8px 8px 0;">TOTAL</th>
+          </tr>
+        </thead>
+        <tbody style="font-size: 14px;">
+          <tr>
+            <td style="padding: 24px 20px; border-bottom: 1px solid #f1f5f9;">
+              <p style="margin: 0; font-weight: 700; color: #0f172a; font-size: 15px;" id="pdf-product-name">Fresh Spinach (PRD-101)</p>
+              <p style="margin: 4px 0 0 0; color: #94a3b8; font-size: 12px;">Standard Supply Batch</p>
+            </td>
+            <td style="padding: 24px 20px; border-bottom: 1px solid #f1f5f9; text-align: center; font-family: monospace; color: #475569; font-weight: 600;" id="pdf-order-id">ORD001</td>
+            <td style="padding: 24px 20px; border-bottom: 1px solid #f1f5f9; text-align: center; color: #475569;" id="pdf-billing-date">02 Apr 2026</td>
+            <td style="padding: 24px 20px; border-bottom: 1px solid #f1f5f9; text-align: right; font-weight: 800; color: #0f172a; font-size: 16px;" id="pdf-amount">₹11,700.00</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Footer Totals -->
+      <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+        <div style="width: 300px;">
+          <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+            <span style="color: #64748b; font-weight: 500;">Subtotal</span>
+            <span style="font-weight: 600; color: #475569;" id="pdf-subtotal">₹11,700.00</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+            <span style="color: #64748b; font-weight: 500;">Tax (0%)</span>
+            <span style="font-weight: 600; color: #475569;">₹0.00</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding: 20px 0; margin-top: 8px;">
+            <span style="font-weight: 700; font-size: 20px; color: #0f172a;">Total Amount</span>
+            <span style="font-weight: 900; font-size: 22px; color: #0f172a;" id="pdf-total">₹11,700.00</span>
+          </div>
+          
+          <!-- Status Badge -->
+          <div style="margin-top: 15px; padding: 10px; border-radius: 8px; text-align: center; font-weight: 800; font-size: 14px; letter-spacing: 1px; border: 2px solid transparent;" id="pdf-status-badge">
+            PAID
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 100px; border-top: 1px solid #f1f5f9; padding-top: 25px; color: #cbd5e1; font-size: 11px; text-align: center; font-style: italic;">
+        This document is an official electronic invoice generated by FreshTrack IMS. 
+        For any discrepancies, please contact your account manager.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== AI CHATBOT ===================== -->
+  <div class="chatbot-container" id="chatbot">
+    <button class="chatbot-toggle" id="chatbotToggle" onclick="toggleChat()">
+      <span class="chatbot-icon">🤖</span>
+      <span class="chatbot-pulse"></span>
+    </button>
+    
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-header">
+        <div class="chat-header-info">
+          <span class="chat-avatar">🤖</span>
+          <div>
+            <div class="chat-title">FreshAI Assistant</div>
+            <div class="chat-status">Online & Ready to Help</div>
+          </div>
+        </div>
+        <button class="chat-close" onclick="toggleChat()">✕</button>
+      </div>
+      
+      <div class="chat-messages" id="chatMessages">
+        <div class="message bot">
+          Hello! I'm FreshAI. How can I help you with your inventory today?
+        </div>
+      </div>
+      
+      <div class="chat-input-area">
+        <input type="text" id="chatInput" placeholder="Ask about stock, suppliers..." onkeypress="handleChatKey(event)" />
+        <button class="chat-send" onclick="sendChatMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

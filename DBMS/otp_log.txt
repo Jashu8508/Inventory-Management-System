@@ -1,0 +1,12 @@
+[resendtest@example.com] OTP: 343186 | Subject: Welcome to FreshTrack - Verify Your Account
+[resendtest2@example.com] OTP: 952058 | Subject: Welcome to FreshTrack - Verify Your Account
+[resendtest2@example.com] OTP: 560361 | Subject: FreshTrack - Your New Verification Code
+[resendtest2@example.com] OTP: 710578 | Subject: FreshTrack - Your New Verification Code
+[fixtest@example.com] OTP: 153986 | Subject: Welcome to FreshTrack - Verify Your Account
+[demo@example.com] OTP: 648284 | Subject: Welcome to FreshTrack - Verify Your Account
+[demo2@example.com] OTP: 222763 | Subject: Welcome to FreshTrack - Verify Your Account
+[jaswanth8508@gmail.com] OTP: 934401 | Subject: Welcome to FreshTrack - Verify Your Account
+[jaswanth8508@gmail.com] OTP: 267379 | Subject: Verify Your FreshTrack Account
+[jaswanth8508@gmail.com] OTP: 142135 | Subject: Verify Your FreshTrack Account
+[jaswanth8508@gmail.com] OTP: 434799 | Subject: Verify Your FreshTrack Account
+[jaswanth8508@gmail.com] OTP: 503573 | Subject: Verify Your FreshTrack Account
