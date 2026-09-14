@@ -9,8 +9,8 @@ from email.mime.multipart import MIMEMultipart
 
 # --- SMTP Configuration ---
 # To send real emails, fill in your SMTP details here:
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
+SMTP_SERVER = "MAIL ID"
+SMTP_PORT = #PORT iD
 SMTP_EMAIL = "MAIL ID" 
 SMTP_PASSWORD = "PASSWORD" # Please replace with your actual App Password
 
